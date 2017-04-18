@@ -1,0 +1,93 @@
+create database visa;
+
+use visa;
+
+CREATE TABLE employee(
+	emp_id INT NOT NULL AUTO_INCREMENT,
+	name VARCHAR(40) NOT NULL,
+	age int NOT NULL,
+	dept_id int not null,
+	salary_id int not null,	   
+   PRIMARY KEY ( emp_id ));
+
+INSERT INTO employee 
+     (name, age, dept_id, salary_id)
+     VALUES
+    ("Sanjay", 30, 1, 1);
+
+
+CREATE TABLE dept(
+	dept_id INT NOT NULL AUTO_INCREMENT,
+	name VARCHAR(40) NOT NULL,
+	location VARCHAR(40) NOT NULL,
+	addr VARCHAR(40) NOT NULL,
+	contact VARCHAR(40) NOT NULL,
+   PRIMARY KEY ( dept_id ));
+
+INSERT INTO dept 
+     ( name, location, addr, contact)
+     VALUES
+    ("Engineering", "Pune", "addr1", "mr x");
+
+
+CREATE TABLE salary(
+	salary_id INT NOT NULL AUTO_INCREMENT,
+	fixed double NOT NULL,
+	variable double NOT NULL,
+	bonus double NOT NULL,
+	CTC double NOT NULL,
+   PRIMARY KEY ( salary_id ));
+
+
+INSERT INTO salary 
+     ( fixed, variable, bonus, CTC)
+     VALUES
+    (40000, 10000, 5000, 55000);
+
+CREATE TABLE visa(
+	visa_id INT NOT NULL AUTO_INCREMENT,
+	country varchar(40) not null,
+	validity varchar(40) not null,
+	status varchar(40) not null,
+	emp_id int NOT NULL,
+   PRIMARY KEY ( visa_id ));
+
+
+
+INSERT INTO visa 
+     ( country, validity, status, emp_id)
+     VALUES
+    ("Singapore", "june 2018", "Multiple", 1);
+
+INSERT INTO visa 
+     ( country, validity, status, emp_id)
+     VALUES
+    ("UK", "june 2019", "Multiple", 1);
+
+In HBase create the table
+--------------------------
+create 'employee', 'info', 'salary', 'visa'
+scan 'employee'
+create 'college', 'student_profile', 'fyresults'
+scan 'college'
+ 
+Importing data from Mysql to hbase
+-----------------------------------
+sqoop import --connect jdbc:mysql://localhost/college --username root -P --table student_master --columns "student_id,name,address" --hbase-table college --column-family student_profile --hbase-row-key student_id  -m 1;
+
+sqoop import --connect jdbc:mysql://localhost/college --username root -P --table fy --columns "student_id,result" --hbase-table college --column-family fyresults --hbase-row-key student_id  -m 1;
+
+sqoop import --connect jdbc:mysql://localhost/visa --username root --password '' --table employee --columns "emp_id,name,age" --hbase-table employee --column-family info --hbase-row-key emp_id  -m 1;
+
+sqoop import --connect jdbc:mysql://localhost/visa --username root --password '' --query 'select a.emp_id as emp_id, b.name as dept_name from employee a, dept b where $CONDITIONS and a.dept_id=b.dept_id' --hbase-table employee --column-family info --hbase-row-key emp_id  -m 1;
+
+sqoop import --connect jdbc:mysql://localhost/visa --username root --password '' --query 'select a.emp_id as emp_id, b.fixed as fixed, b.variable as variable, b.bonus as bonus, b.CTC as CTC from employee a, salary b where $CONDITIONS and a.salary_id=b.salary_id' --hbase-table employee --column-family salary --hbase-row-key emp_id  -m 1;
+
+sqoop import --connect jdbc:mysql://localhost/visa --username root --password '' --query 'select a.emp_id as emp_id, b.country as country1 from employee a, visa b where $CONDITIONS and a.emp_id=b.emp_id and visa_id=1' --hbase-table employee --column-family visa --hbase-row-key emp_id  -m 1;
+
+sqoop import --connect jdbc:mysql://localhost/visa --username root --password '' --query 'select a.emp_id as emp_id, b.country as country2 from employee a, visa b where $CONDITIONS and a.emp_id=b.emp_id and visa_id=2' --hbase-table employee --column-family visa --hbase-row-key emp_id  -m 1;
+
+
+
+
+
